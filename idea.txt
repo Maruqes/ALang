@@ -1,0 +1,33 @@
+interpretada --- cheira me q é mais facil
+
+Itens:
+variaveis{
+    char            A
+    ints            AA
+} (arrays)
+
+func{
+    if
+    for
+    while
+}
+
+sysfuncs{
+    print
+    read
+}
+
+
+example: char 0x = "OLA"  = A A 79 74 65 A
+                            | | |  |  |  | 
+                            | | |  |  |  | 
+                            | | |  |  |  | 
+                            | | |  |  |  | 
+                            | | |  |  |  finish definition
+                            | | |  |  A
+                            | | |  L
+                            | | |O
+                            | define first variable(only one A, the next will be AA)
+                            define char
+
+    
