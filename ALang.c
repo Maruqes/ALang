@@ -21,6 +21,8 @@ typedef struct Char_struct_save
     int allocation_pos;
 } Char_struct_save;
 
+Char_struct_save *char_struct_allocation;
+
 void ERROR_CRASH(char *msg)
 {
     printf("\n");
@@ -32,10 +34,10 @@ void ERROR_CRASH(char *msg)
     exit(0);
 }
 
-int convert_string_hex_to_integer(char *str)
+int convert_string_hex_to_integer(char *str, int len)
 {
     int res = 0;
-    int str_len = strlen(str);
+    int str_len = len;
 
     for (int i = 0; i < str_len; i++)
     {
@@ -91,6 +93,21 @@ int count_number_of_chars(int name_pointer)
     return i / 3;
 }
 
+void create_and_save_chars_structures(int n_a, int n_of_chars)
+{
+    Char_struct_save char_struct;
+    char_struct.n_a = n_a;
+    char_struct.allocation_pos = chars_lenght - n_of_chars; // seta o primeiro byte da string como o ultima antigo
+
+    printf("Number of A's = %d\n", char_struct.n_a);
+
+    printf("aaa %d\n", char_struct.allocation_pos);
+
+    printf("\nSTRING on byte %d = %s\n", char_struct.allocation_pos, chars_allocation + char_struct.allocation_pos);
+
+    char_struct_allocation = realloc(char_struct_allocation, (n_a * sizeof(char_struct_allocation)));
+}
+
 void check_char()
 {
     char a = 0x00;
@@ -99,11 +116,12 @@ void check_char()
         (program_pointer == 0 && file[program_pointer] == (char)0x41 && file[program_pointer + 1] == (char)0x20) ||
         (file[program_pointer - 1] == (char)0x0A && file[program_pointer] == (char)0x41 && file[program_pointer + 1] == (char)0x20))
     {
-        printf("Creating char on byte %d\n", program_pointer);
+        printf("\nCreating char on byte %d\n", program_pointer);
         creating_variable = 1;
     }
     else
     {
+        // printf("\n%d not a char\n", program_pointer);
         return;
     }
 
@@ -113,27 +131,23 @@ void check_char()
     {
         ERROR_CRASH("char should have a name of 'A'");
     }
-    int n_a = count_number_of_A(name_pointer); // number of A's variable
 
+    // GOT A STRING
+    int n_a = count_number_of_A(name_pointer); // number of A's variable
     name_pointer = name_pointer + (n_a - 1);
 
-    // count number of chars
-    printf("Counting Chars\n");
-
-    Char_struct_save char_struct;
-    char_struct.n_a = n_a;
-
     int n_of_chars = count_number_of_chars(name_pointer);
+    n_of_chars += 1; // last byte of a string
+    printf("Number of chars is : %d\n", n_of_chars);
 
-    // chars_lenght += n_of_chars + 1;
-    // chars_allocation = realloc(chars_allocation, chars_lenght); // allocate more memory
-    // chars_allocation[chars_lenght - 1] = 0x00;
+    chars_lenght += n_of_chars;
+    chars_allocation = realloc(chars_allocation, chars_lenght); // allocate more memory
+    chars_allocation[chars_lenght - 1] = 0x00;
 
-    char *variable = malloc(chars_lenght);
-    variable[chars_lenght - 1] = 0x00;
+    char *hex_number = malloc(3);
+    hex_number[2] = 0x00;
 
-    char *hex_number = malloc(2);
-    char cur_char;
+    char cur_char = 0;
     int cur_char_n = 0;
     while (cur_char != 0x0A)
     {
@@ -141,21 +155,22 @@ void check_char()
         hex_number[1] = file[name_pointer + 3 + cur_char_n];
         cur_char = file[name_pointer + 4 + cur_char_n];
 
-        printf("%s\n", hex_number);
-        char c = (char)convert_string_hex_to_integer(hex_number);
-        memcpy(variable + (cur_char_n / 3), &c, 1);
+        printf("%s ", hex_number);
+        char c = (char)convert_string_hex_to_integer(hex_number, 2);
+        memcpy((chars_allocation + chars_lenght - n_of_chars) + (cur_char_n / 3), &c, 1);
 
         cur_char_n += 3;
     }
-    printf("%s\n", variable);
 
-    program_pointer = name_pointer + 4 + cur_char_n; // set program_pointer to last byte on line... to sart reading next byte    //este ptr esta malll
-    printf("new ptr = %d\n", name_pointer + 4 + cur_char_n);
+    // é o name_pointer + 4 + cur_char_n... so q menos 3
+    program_pointer = name_pointer + 1 + cur_char_n; // set program_pointer to last byte on line... to sart reading next byte
+    printf("new ptr = %d\n", name_pointer + 1 + cur_char_n);
 
     creating_variable = 0;
 
     free(hex_number);
-    free(variable);
+
+    create_and_save_chars_structures(n_a, n_of_chars);
 }
 
 void execute()
